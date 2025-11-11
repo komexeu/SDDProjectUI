@@ -36,7 +36,11 @@
 
         <!-- 已選商品 -->
         <a-divider>訂單明細</a-divider>
-        <a-form-item label="已選商品" name="items">
+        <!-- 用於驗證 items 必填，隱藏不渲染內容 -->
+        <a-form-item name="items" style="display:none" />
+
+        <!-- 訂單明細表格 -->
+        <div>
           <div v-if="orderForm.items.length === 0" class="empty-cart">
             <a-empty description="尚未選擇任何商品" />
           </div>
@@ -60,7 +64,7 @@
               </template>
             </template>
           </a-table>
-        </a-form-item>
+        </div>
 
         <!-- 總金額 -->
         <a-divider>訂單總計</a-divider>
@@ -258,7 +262,7 @@ async function submitOrder() {
     router.push('/orders');
   } catch (error: any) {
     if (error.name === 'ValidationError') {
-      // 表單驗證錯誤，不顯示訊息
+      message.warning('請確認所有必填欄位與商品明細皆已正確填寫');
       return;
     }
     message.error('建立訂單失敗：' + (error.response?.data?.message || error.message));
