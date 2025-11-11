@@ -8,8 +8,8 @@ import type {
 
 const API_BASE = 'http://localhost:3000/api/orders';
 
-export async function getOrders(): Promise<ApiResponse<{ orders: OrderDetail[] }>> {
-  const response = await axios.get(`${API_BASE}/list`);
+export async function getOrders(params?: { limit?: number; offset?: number; userId?: string; status?: string }): Promise<ApiResponse<{ orders: OrderDetail[] }>> {
+  const response = await axios.get(`${API_BASE}/list`, { params });
   return response.data;
 }
 
