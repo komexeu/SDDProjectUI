@@ -14,6 +14,23 @@
           <path d="M12 5l7 7-7 7" />
         </svg>
       </button>
+      <div class="sidebar-user" v-show="!sidebarCollapsed">
+        <div v-if="!isLoggedIn">
+          <router-link to="/login">登入</router-link>
+        </div>
+        <div v-else class="user-nav">
+          <img :src="userPicture" alt="User Picture" class="user-avatar-nav" v-if="userPicture" />
+          <span class="user-name-nav">{{ userName }}</span>
+          <button class="logout-btn" @click="logout" title="登出" aria-label="登出">
+            <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 17l5-5-5-5" />
+              <path d="M21 12H9" />
+              <path d="M12 19v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+      </div>
       <div class="accordion" v-show="!sidebarCollapsed">
         <div class="accordion-item">
           <div class="accordion-header" @click="toggleAccordion('order')">
@@ -43,23 +60,6 @@
           <ul v-show="openAccordion === 'inventory'" class="accordion-list">
             <li><router-link to="/inventory">列表</router-link></li>
           </ul>
-        </div>
-      </div>
-      <div class="sidebar-user" v-show="!sidebarCollapsed">
-        <div v-if="!isLoggedIn">
-          <router-link to="/login">登入</router-link>
-        </div>
-        <div v-else class="user-nav">
-          <img :src="userPicture" alt="User Picture" class="user-avatar-nav" v-if="userPicture" />
-          <span class="user-name-nav">{{ userName }}</span>
-          <button class="logout-btn" @click="logout" title="登出" aria-label="登出">
-            <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 17l5-5-5-5" />
-              <path d="M21 12H9" />
-              <path d="M12 19v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v2" />
-            </svg>
-          </button>
         </div>
       </div>
     </aside>
@@ -123,7 +123,7 @@ onMounted(() => {
   border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 24px 0 0 0;
   box-sizing: border-box;
   transition: width 0.2s;
@@ -214,9 +214,9 @@ onMounted(() => {
 }
 
 .sidebar-user {
-  padding: 24px 28px 24px 28px;
-  border-top: 1px solid #ececec;
-  margin-top: 32px;
+  padding: 16px 28px 12px 28px;
+  border-bottom: 1px solid #ececec;
+  margin-bottom: 0;
 }
 
 .user-nav {
@@ -267,9 +267,5 @@ onMounted(() => {
   height: 18px;
   transition: color 0.2s;
   vertical-align: middle;
-}
-
-.logout-btn:hover .logout-icon {
-  color: #f44336;
 }
 </style>

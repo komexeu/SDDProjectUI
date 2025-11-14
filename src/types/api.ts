@@ -8,8 +8,32 @@ export interface OrderItemInput {
   price: number;
 }
 
-export interface OrderItemOutput extends OrderItemInput {
-  totalPrice: number;
+// openapi.yaml 定義的 OrderItemOutput
+export interface OrderItemOutput {
+  id: string;
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+// openapi.yaml 定義的 OrderStatus
+export type OrderStatus =
+  | '已點餐'
+  | '已確認訂單'
+  | '製作中'
+  | '可取餐'
+  | '已取餐完成'
+  | '已取消'
+  | '製作失敗'
+  | '異常';
+// openapi.yaml 定義的 Order 型別
+export interface Order {
+  id: string;
+  userId: string;
+  items: OrderItemOutput[];
+  description?: string;
+  status: OrderStatus;
+  canceledBy?: string;
 }
 
 // 前端使用的訂單項目類型 (包含計算欄位)
@@ -19,23 +43,22 @@ export interface OrderItemUI extends OrderItemInput {
 
 export interface CreateOrderRequest {
   userId: string;
-  description?: string;
-  items: OrderItemInput[];
+  items: OrderItemOutput[];
+  description?: string | null;
 }
 
 export interface CreateOrderResponse {
   orderId: string;
   userId: string;
-  description: string;
-  status: string;
-  totalAmount: number;
-  itemCount: number;
-  createdAt: string;
   items: OrderItemOutput[];
+  description?: string;
+  status: OrderStatus;
+  totalAmount: number;
+  createdAt: string;
 }
 
 export interface OrderDetail extends CreateOrderResponse {
-  updatedAt: string;
+  // openapi.yaml 沒有 updatedAt，移除
 }
 
 // 商品相關類型定義
