@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3000/api/auth';
+const API_BASE = 'https://sdd-tunnel.komexeu.page/api/auth';
 export async function loginWithLineCode(code: string) {
     console.log('loginWithLineCode code:', code);
     console.log('API:', `${API_BASE}/line/callback`);

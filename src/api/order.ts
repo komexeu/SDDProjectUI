@@ -8,7 +8,7 @@ import type {
   OrderStatus
 } from '../types/api';
 
-const API_BASE = 'http://localhost:3000/api/orders';
+const API_BASE = 'https://sdd-tunnel.komexeu.page/api/orders';
 
 //#region 001
 // 查詢訂單狀態

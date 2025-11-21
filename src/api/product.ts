@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { Product, ProductListResponse, ApiResponse, InventoryLog } from '../types/api';
 
-const API_BASE = 'http://localhost:3000/api/products';
+const API_BASE = 'https://sdd-tunnel.komexeu.page/api/products';
 
 export async function getProducts(): Promise<ApiResponse<ProductListResponse>> {
   const response = await axios.get(`${API_BASE}/list`);
