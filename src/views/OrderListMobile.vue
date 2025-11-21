@@ -26,21 +26,50 @@
             </button>
           </div>
         </div>
+        <div class="pagination-bar">
+          <button class="page-btn" :disabled="page === 1" @click="changePage(page - 1)">上一頁</button>
+          <span>第 {{ page }} / {{ totalPages }} 頁</span>
+          <button class="page-btn" :disabled="page === totalPages" @click="changePage(page + 1)">下一頁</button>
+          <select v-model.number="pageSize" @change="changePageSize">
+            <option :value="5">5</option>
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+          </select>
+          <span>每頁</span>
+        </div>
       </div>
     </div>
     <ConfirmModal v-if="confirmModal.visible" :visible="confirmModal.visible" :title="confirmModal.title" :content="confirmModal.content" :okText="confirmModal.okText" :cancelText="confirmModal.cancelText" @ok="onConfirmModalOk" @cancel="onConfirmModalCancel" />
+    <div v-if="editTargetOpen" class="mobile-edit-modal">
+      <div class="modal-mask" @click="closeEdit" />
+      <div class="modal-content">
+        <div class="modal-title">編輯訂單</div>
+        <textarea v-model="editTarget.description" placeholder="描述" rows="4" class="modal-textarea" />
+        <div class="modal-actions">
+          <button class="modal-btn" @click="submitEdit">儲存</button>
+          <button class="modal-btn cancel" @click="closeEdit">取消</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { getOrders } from '../api/order';
+import { ref, onMounted, computed } from 'vue';
+import { getOrders, updateOrder } from '../api/order';
+import { message } from 'ant-design-vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
 
 const orders = ref<any[]>([]);
 const loading = ref(true);
 const error = ref('');
+const total = ref(0);
+const page = ref(1);
+const pageSize = ref(10);
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)));
 const confirmModal = ref({ visible: false, title: '', content: '', okText: '', cancelText: '', orderId: null, nextStatus: '' });
+const editTarget = ref<any>({});
+const editTargetOpen = ref(false);
 
 function getStatusText(status: string) {
   switch (status) {
@@ -57,8 +86,51 @@ function getNextStatuses(status: string) {
   return [];
 }
 function editOrder(order: any) {
-  // 跳轉到編輯頁（可根據實際路由調整）
-  window.location.href = `/orders/edit/${order.orderId}`;
+  editTarget.value = { ...order };
+  editTargetOpen.value = true;
+}
+
+function closeEdit() {
+  editTargetOpen.value = false;
+  editTarget.value = {};
+}
+
+async function submitEdit() {
+  if (editTarget.value && editTarget.value.orderId) {
+    try {
+      await updateOrder(editTarget.value.orderId, editTarget.value);
+      closeEdit();
+      await reloadOrders();
+      message.success('訂單更新成功');
+    } catch (e: any) {
+      message.error(e?.message || '更新訂單失敗');
+    }
+  }
+}
+
+async function reloadOrders() {
+  loading.value = true;
+  error.value = '';
+  try {
+    const res = (await getOrders({ limit: pageSize.value, offset: (page.value - 1) * pageSize.value })) as any;
+    orders.value = res.orders || [];
+    total.value = res.total || orders.value.length;
+  } catch (e: any) {
+    error.value = e?.message || '載入失敗';
+  } finally {
+    loading.value = false;
+  }
+}
+
+function changePage(newPage: number) {
+  if (newPage < 1 || newPage > totalPages.value) return;
+  page.value = newPage;
+  reloadOrders();
+}
+
+function changePageSize() {
+  page.value = 1;
+  reloadOrders();
 }
 function openConfirmModal(orderId: any, nextStatus: string) {
   confirmModal.value = {
@@ -78,19 +150,104 @@ function onConfirmModalOk() {
 function onConfirmModalCancel() {
   confirmModal.value.visible = false;
 }
-onMounted(async () => {
-  loading.value = true;
-  error.value = '';
-  try {
-    const res = (await getOrders()) as any;
-    orders.value = res.orders || [];
-  } catch (e: any) {
-    error.value = e?.message || '載入失敗';
-  } finally {
-    loading.value = false;
-  }
-});
+onMounted(reloadOrders);
 </script>
+
+<style scoped>
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 18px 0 8px 0;
+}
+.page-btn {
+  background: #1765ad;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.page-btn:disabled {
+  background: #ccc;
+  color: #fff;
+  cursor: not-allowed;
+}
+select {
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 15px;
+}
+/* ...existing code... */
+.mobile-edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.3);
+}
+.modal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px 18px 16px 18px;
+  min-width: 80vw;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.modal-textarea {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  padding: 8px;
+  font-size: 15px;
+  resize: vertical;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.modal-btn {
+  background: #1765ad;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-btn.cancel {
+  background: #aaa;
+}
+</style>
 
 <style scoped>
 .mobile-order-list {
